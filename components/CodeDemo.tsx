@@ -18,22 +18,22 @@ export function CodeDemo({ code, language = "typescript", title }: CodeDemoProps
   };
 
   return (
-    <div className="rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 my-6">
+    <div className="rounded-lg overflow-hidden border border-border my-6">
       {title && (
-        <div className="flex items-center justify-between px-4 py-2 bg-zinc-100 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
-          <span className="text-xs font-mono text-zinc-500">{title}</span>
-          <span className="text-xs text-zinc-400">{language}</span>
+        <div className="flex items-center justify-between px-4 py-2 bg-paper-dark border-b border-border">
+          <span className="text-xs font-mono text-ink-faint">{title}</span>
+          <span className="text-xs text-ink-faint">{language}</span>
         </div>
       )}
       <div className="relative">
-        <pre className="p-4 overflow-x-auto text-sm bg-zinc-950 text-zinc-100">
+        <pre className="p-4 overflow-x-auto text-sm bg-ink text-paper font-mono">
           <code>{code}</code>
         </pre>
         <button
           onClick={handleCopy}
-          className="absolute top-2 right-2 px-2 py-1 text-xs rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors"
+          className="absolute top-2 right-2 px-2 py-1 text-xs rounded bg-paper/20 hover:bg-paper/30 text-paper transition-colors font-mono"
         >
-          {copied ? "已复制!" : "复制"}
+          {copied ? "Copied!" : "Copy"}
         </button>
       </div>
     </div>

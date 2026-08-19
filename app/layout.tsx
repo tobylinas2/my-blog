@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
-import { ThemeProvider } from "next-themes";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "MyBlog",
-    template: "%s | MyBlog",
+    default: "Toby's Workshop",
+    template: "%s | Toby's Workshop",
   },
-  description: "个人博客 - 分享心得与项目",
+  description: "独立开发者 Toby Linas 的个人工坊 — Minecraft Mod、工具与想法",
 };
 
 export default function RootLayout({
@@ -18,13 +17,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="zh-CN" suppressHydrationWarning>
-      <body className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 antialiased">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <Header />
-          <main className="max-w-3xl mx-auto px-4 py-8">{children}</main>
-          <Footer />
-        </ThemeProvider>
+    <html lang="zh-CN">
+      <body className="min-h-screen antialiased">
+        <Header />
+        <main className="max-w-3xl mx-auto px-6 py-12">{children}</main>
+        <Footer />
       </body>
     </html>
   );
