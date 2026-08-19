@@ -80,30 +80,15 @@ export default function Home() {
         <div className="space-y-20">
           {projects.map((project) => (
             <article key={project.name} className="group">
-              {/* Watercolor image - painted into the paper */}
+              {/* Transparent watercolor lets the paper texture show through. */}
               <div className="relative -mx-8 md:mx-0">
-                <div className="relative aspect-[4/3] md:aspect-[16/9] overflow-hidden rounded-sm">
+                <div className="relative aspect-[4/3] md:aspect-[16/9]">
                   <Image
                     src={project.image}
                     alt={project.name}
                     fill
                     className="object-contain transition-all duration-700 group-hover:scale-[1.01]"
-                    style={{
-                      filter: "sepia(0.15) saturate(0.9) brightness(1.02) contrast(0.95)",
-                    }}
                   />
-                  {/* Fade edges into paper */}
-                  <div
-                    className="absolute inset-0 pointer-events-none"
-                    style={{
-                      background: `
-                        linear-gradient(to right, var(--background) 0%, transparent 8%, transparent 92%, var(--background) 100%),
-                        linear-gradient(to bottom, var(--background) 0%, transparent 6%, transparent 94%, var(--background) 100%)
-                      `,
-                    }}
-                  />
-                  {/* Warm tint overlay */}
-                  <div className="absolute inset-0 pointer-events-none bg-[#f5f0e8] opacity-15 mix-blend-color" />
                 </div>
               </div>
 
