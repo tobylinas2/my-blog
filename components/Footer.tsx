@@ -1,3 +1,5 @@
+import { GithubIcon, TwitterIcon } from "./SocialIcons";
+
 export function Footer() {
   return (
     <footer className="border-t border-border mt-20">
@@ -5,22 +7,24 @@ export function Footer() {
         <p className="font-mono text-xs">
           &copy; {new Date().getFullYear()} Toby&apos;s Workshop
         </p>
-        <div className="flex gap-5 font-mono text-xs">
+        <div className="flex gap-5">
           <a
             href="https://github.com/tobyprime"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-ink transition-colors"
+            className="flex items-center gap-1.5 hover:text-ink transition-colors"
           >
-            GitHub
+            <GithubIcon className="w-3.5 h-3.5" />
+            <span className="font-mono text-xs">GitHub</span>
           </a>
           <a
             href="https://twitter.com/toby_linas"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-ink transition-colors"
+            className="flex items-center gap-1.5 hover:text-ink transition-colors"
           >
-            Twitter
+            <TwitterIcon className="w-3.5 h-3.5" />
+            <span className="font-mono text-xs">Twitter</span>
           </a>
         </div>
       </div>

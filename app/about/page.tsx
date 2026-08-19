@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { GithubIcon, TwitterIcon } from "@/components/SocialIcons";
 
 export const metadata: Metadata = {
   title: "About",
@@ -20,24 +21,26 @@ export default function AboutPage() {
           喜欢折腾客户端渲染、音视频解码和游戏内交互这些东西。
         </p>
       </div>
-      <div className="border-t border-border pt-6 space-y-2 text-sm">
+      <div className="border-t border-border pt-6 space-y-3 text-sm">
         <p className="text-ink-faint font-mono">Find me at</p>
-        <div className="space-y-1">
+        <div className="space-y-2">
           <a
             href="https://github.com/tobyprime"
             target="_blank"
             rel="noopener noreferrer"
-            className="block text-ink-light hover:text-ink transition-colors"
+            className="flex items-center gap-2 text-ink-light hover:text-ink transition-colors"
           >
-            github.com/tobyprime
+            <GithubIcon className="w-4 h-4" />
+            <span>GitHub</span>
           </a>
           <a
             href="https://twitter.com/toby_linas"
             target="_blank"
             rel="noopener noreferrer"
-            className="block text-ink-light hover:text-ink transition-colors"
+            className="flex items-center gap-2 text-ink-light hover:text-ink transition-colors"
           >
-            @toby_linas
+            <TwitterIcon className="w-4 h-4" />
+            <span>@toby_linas</span>
           </a>
         </div>
       </div>

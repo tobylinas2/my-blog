@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { GithubIcon, TwitterIcon } from "@/components/SocialIcons";
 
 const projects = [
   {
@@ -7,7 +8,7 @@ const projects = [
     tagline: "在 Minecraft 里看视频",
     description:
       "在 Minecraft 世界中播放 B 站视频、直播和抖音片段，用盔甲架当电视。支持弹幕、空间音频和智能性能调度。",
-    image: "/images/mcedia.png",
+    image: "/images/mcedia-watercolor.png",
     modrinth: "https://modrinth.com/mod/mcedia",
     downloads: "27K+",
     tags: ["Fabric", "客户端"],
@@ -17,16 +18,21 @@ const projects = [
     tagline: "把 Minecraft 拍成照片",
     description:
       "手持相机，对准你想留住的画面。成片是原版地图物品，不需要 Mod 的玩家也能查看、交易和挂进展示框。",
-    image: "/images/tobys-camera.png",
+    image: "/images/tobys-camera-watercolor.png",
     modrinth: "https://modrinth.com/mod/tobys-camera",
     downloads: "235+",
     tags: ["Fabric", "Paper/Folia"],
   },
 ];
 
+const socialLinks = [
+  { name: "GitHub", icon: GithubIcon, href: "https://github.com/tobyprime" },
+  { name: "Twitter", icon: TwitterIcon, href: "https://twitter.com/toby_linas" },
+];
+
 export default function Home() {
   return (
-    <div className="space-y-20">
+    <div className="space-y-24">
       {/* Hero */}
       <section className="space-y-6 pt-8">
         <div className="space-y-2">
@@ -40,29 +46,27 @@ export default function Home() {
         <p className="text-lg text-ink-light leading-relaxed max-w-xl">
           做 Minecraft Mod，写代码，偶尔折腾点别的东西。
         </p>
-        <div className="flex gap-5 text-sm">
-          <a
-            href="https://github.com/tobyprime"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-ink-faint hover:text-ink transition-colors"
-          >
-            GitHub
-          </a>
-          <a
-            href="https://twitter.com/toby_linas"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-ink-faint hover:text-ink transition-colors"
-          >
-            Twitter
-          </a>
+
+        {/* Social Links */}
+        <div className="flex gap-4 pt-2">
+          {socialLinks.map((link) => (
+            <a
+              key={link.name}
+              href={link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-sm text-ink-faint hover:text-ink transition-colors group"
+            >
+              <link.icon className="w-4 h-4 group-hover:scale-110 transition-transform" />
+              <span>{link.name}</span>
+            </a>
+          ))}
           <span className="text-ink-faint">/</span>
-          <Link href="/blog" className="text-ink-faint hover:text-ink transition-colors">
-            Blog
+          <Link href="/blog" className="flex items-center gap-2 text-sm text-ink-faint hover:text-ink transition-colors">
+            <span>Blog</span>
           </Link>
-          <Link href="/about" className="text-ink-faint hover:text-ink transition-colors">
-            About
+          <Link href="/about" className="flex items-center gap-2 text-sm text-ink-faint hover:text-ink transition-colors">
+            <span>About</span>
           </Link>
         </div>
       </section>
@@ -71,22 +75,25 @@ export default function Home() {
       <hr className="border-border" />
 
       {/* Projects */}
-      <section className="space-y-10">
+      <section className="space-y-16">
         <h2 className="text-2xl font-bold">Featured Works</h2>
-        <div className="space-y-14">
+        <div className="space-y-20">
           {projects.map((project) => (
             <article key={project.name} className="group">
-              <div className="relative overflow-hidden rounded-lg border border-border bg-card">
-                <div className="aspect-[16/9] relative overflow-hidden">
+              {/* Watercolor image - no border, soft edges */}
+              <div className="relative -mx-6 md:mx-0 overflow-visible">
+                <div className="relative aspect-[4/3] md:aspect-[16/9]">
                   <Image
                     src={project.image}
                     alt={project.name}
                     fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                    className="object-contain mix-blend-multiply opacity-90 group-hover:opacity-100 transition-opacity duration-500"
+                    style={{ filter: "saturate(0.85)" }}
                   />
                 </div>
               </div>
-              <div className="mt-5 space-y-3">
+
+              <div className="mt-6 space-y-3">
                 <div className="flex items-center gap-3">
                   <h3 className="text-xl font-bold">{project.name}</h3>
                   <span className="text-xs font-mono text-ink-faint bg-paper-dark px-2 py-0.5 rounded">
