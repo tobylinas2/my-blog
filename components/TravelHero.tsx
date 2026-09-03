@@ -10,10 +10,11 @@ interface TravelHeroProps {
   date: string;
   location?: string;
   cover: string;
+  tags?: string[];
 }
 
 /** 沉浸式游记头图：全幅出血封面 + 纸色渐晕 + 地名印章 + 标题信息层 */
-export function TravelHero({ title, description, date, location, cover }: TravelHeroProps) {
+export function TravelHero({ title, description, date, location, cover, tags }: TravelHeroProps) {
   const fade = (delay: number) => ({
     "data-motion-item": true,
     initial: { opacity: 0, y: 22 },
@@ -57,7 +58,7 @@ export function TravelHero({ title, description, date, location, cover }: Travel
             {...fade(0.15)}
           >
             <time dateTime={date}>{formatDate(date)}</time>
-            {location ? ` · ${location}` : ""} · 五日行程
+            {location ? ` · ${location}` : ""}
           </motion.p>
           <motion.h1 className="mt-2 font-display text-4xl sm:text-5xl" {...fade(0.3)}>
             {title}
@@ -65,6 +66,18 @@ export function TravelHero({ title, description, date, location, cover }: Travel
           <motion.p className="mt-3 max-w-xl text-[15px] text-ink-light" {...fade(0.45)}>
             {description}
           </motion.p>
+          {tags && tags.length > 0 && (
+            <motion.div className="mt-3 flex flex-wrap gap-1.5" {...fade(0.55)}>
+              {tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-full border border-border bg-paper-dark px-2 py-0.5 text-xs text-ink-light"
+                >
+                  {tag}
+                </span>
+              ))}
+            </motion.div>
+          )}
         </div>
       </div>
     </section>

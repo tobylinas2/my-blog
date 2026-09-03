@@ -12,7 +12,7 @@ interface TravelPhotoProps {
   src: string;
   caption: string;
   alt?: string;
-  /** card: 手账照片卡（默认） / wide: 破格宽图 / full: 全幅出血图 / side: 桌面端浮动图文混排 */
+  /** card: 手账照片卡（默认） / wide: 破格宽图 / full: 全幅出血图 / side: 桌面端侧栏对齐图块，不环绕文字 */
   variant?: TravelPhotoVariant;
   /** variant="side" 时浮动方向 */
   side?: "left" | "right";

@@ -40,6 +40,7 @@ export default async function TravelEntry({ params }: Props) {
               date={travel.date}
               location={travel.location}
               cover={travel.cover}
+              tags={travel.tags}
             />
           </div>
         ) : (
