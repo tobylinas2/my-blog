@@ -57,9 +57,34 @@ export const Project = defineDocumentType(() => ({
   },
 }));
 
+export const Travel = defineDocumentType(() => ({
+  name: "Travel",
+  filePathPattern: "travel/**/*.mdx",
+  contentType: "mdx",
+  fields: {
+    title: { type: "string", required: true },
+    description: { type: "string", required: true },
+    date: { type: "date", required: true },
+    location: { type: "string" },
+    cover: { type: "string" },
+    tags: { type: "list", of: { type: "string" } },
+  },
+  computedFields: {
+    slug: {
+      type: "string",
+      resolve: (doc) => doc._raw.flattenedPath.replace("travel/", ""),
+    },
+    url: {
+      type: "string",
+      resolve: (doc) =>
+        `/travel/${doc._raw.flattenedPath.replace("travel/", "")}`,
+    },
+  },
+}));
+
 export default makeSource({
   contentDirPath: "content",
-  documentTypes: [Post, Project],
+  documentTypes: [Post, Project, Travel],
   mdx: {
     remarkPlugins: [remarkGfm],
     rehypePlugins: [rehypeSlug, [rehypeAutolinkHeadings, { behavior: "wrap" }]],
