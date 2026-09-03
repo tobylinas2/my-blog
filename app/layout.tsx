@@ -18,7 +18,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-CN">
-      <body className="min-h-screen antialiased">
+      <body className="min-h-screen antialiased overflow-x-clip">
         <Header />
         <main className="max-w-3xl mx-auto px-6 py-12">{children}</main>
         <Footer />
