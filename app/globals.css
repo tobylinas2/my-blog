@@ -35,6 +35,18 @@ h1, h2, h3, h4 {
   font-family: "Georgia", "Noto Serif SC", serif;
 }
 
+.font-display {
+  font-family: "Georgia", "Noto Serif SC", serif;
+}
+
+/* 无 JS 环境（静态导出的 HTML 自带 motion 初始态）时保证内容可见 */
+@media (scripting: none) {
+  [data-motion-item] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
 a {
   text-decoration-color: #c4956a60;
   text-underline-offset: 3px;
@@ -42,4 +54,9 @@ a {
 
 a:hover {
   text-decoration-color: #c4956a;
+}
+
+/* 全幅出血元素（w-screen/100vw）受滚动条宽度影响会略超视口，禁止横向滚动 */
+html {
+  overflow-x: hidden;
 }

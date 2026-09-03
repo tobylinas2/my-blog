@@ -1,0 +1,96 @@
+"use client";
+
+import Image from "next/image";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
+
+type TravelPhotoVariant = "card" | "wide" | "full" | "side";
+
+interface TravelPhotoProps {
+  /** 照片序号（1-25），caption 前以「图 NN」展示 */
+  num: number;
+  src: string;
+  caption: string;
+  alt?: string;
+  /** card: 手账照片卡（默认） / wide: 破格宽图 / full: 全幅出血图 / side: 桌面端浮动图文混排 */
+  variant?: TravelPhotoVariant;
+  /** variant="side" 时浮动方向 */
+  side?: "left" | "right";
+  /** 容器宽高比，如 "3/2"、"3/4" */
+  ratio?: string;
+  className?: string;
+}
+
+function pad2(n: number) {
+  return String(n).padStart(2, "0");
+}
+
+export function TravelPhoto({
+  num,
+  src,
+  caption,
+  alt,
+  variant = "card",
+  side = "right",
+  ratio = "3/2",
+  className,
+}: TravelPhotoProps) {
+  const framed = variant !== "full";
+  // 三个嵌套层各持一种 transform：外层破格位移 / reveal 升起 / 卡片微倾
+  const bleed =
+    variant === "full"
+      ? "relative left-1/2 w-screen -translate-x-1/2"
+      : variant === "wide"
+        ? "relative left-1/2 w-[min(960px,calc(100vw-2rem))] -translate-x-1/2"
+        : variant === "side"
+          ? cn(
+              "mx-auto w-full max-w-md md:max-w-[46%]",
+              side === "left" ? "md:ml-0" : "md:mr-0"
+            )
+          : "mx-auto max-w-md";
+
+  const reveal = {
+    "data-motion-item": true,
+    initial: { opacity: 0, y: 28 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, margin: "-64px" },
+    transition: { duration: 0.7, ease: "easeOut" as const },
+  };
+
+  return (
+    <div className={cn("my-9", bleed, className)}>
+      <motion.figure {...reveal}>
+        <div
+          className={cn(
+            "rounded-lg border border-border bg-card shadow-[0_14px_36px_-18px_rgba(44,36,22,0.35)]",
+            framed ? "p-2 sm:p-2.5" : "overflow-hidden",
+            variant === "card" &&
+              cn(
+                "transition-transform duration-500 hover:rotate-0",
+                num % 2 === 0 ? "-rotate-1" : "rotate-1"
+              )
+          )}
+        >
+          <div
+            className="relative overflow-hidden rounded-md"
+            style={{ aspectRatio: ratio }}
+          >
+            <Image
+              src={src}
+              alt={alt ?? caption}
+              fill
+              sizes={variant === "card" ? "(max-width: 768px) 90vw, 448px" : "90vw"}
+              className="object-cover"
+            />
+          </div>
+        </div>
+        <figcaption className="mt-2.5 px-1 leading-relaxed">
+          <span className="mr-2 font-mono text-xs tracking-widest text-accent">
+            图 {pad2(num)}
+          </span>
+          <span className="text-sm text-ink-light">{caption}</span>
+        </figcaption>
+      </motion.figure>
+    </div>
+  );
+}

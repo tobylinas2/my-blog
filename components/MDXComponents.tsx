@@ -1,9 +1,17 @@
 import { Screenshot } from "./Screenshot";
 import { CodeDemo } from "./CodeDemo";
+import { TravelPhoto } from "./TravelPhoto";
+import { TravelPair } from "./TravelPair";
+import { DaySection } from "./DaySection";
+import { TravelDivider } from "./TravelDivider";
 
 export const MDXComponents = {
   Screenshot,
   CodeDemo,
+  TravelPhoto,
+  TravelPair,
+  DaySection,
+  TravelDivider,
   h1: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h1 className="text-3xl font-bold mt-8 mb-4" {...props}>{children}</h1>
   ),
