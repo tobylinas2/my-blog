@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Extract photos from the Guizhou trip scan PDF and repaint them as a
-visually unified watercolor (水彩) image set via the gpt-image-2 edits API.
+"""Extract photos from a trip scan PDF and repaint them as a visually
+unified watercolor (水彩) image set via the gpt-image-2 edits API.
 
 The PDF stores photos in reverse chronological order: narrative index k
-(1-based) lives on page (N - k + 1). Outputs are named guizhou-<k>.jpg and
+(1-based) lives on page (N - k + 1). Outputs are named <slug>-<k>.jpg and
 follow the travelogue narrative.
 
 Requirements:
@@ -14,6 +14,10 @@ Requirements:
 Usage:
   python3 scripts/watercolor_photos.py --pdf /path/to/scan.pdf \
       --out-dir public/images/travel/guizhou
+
+  # a different trip: pass its slug and page count
+  python3 scripts/watercolor_photos.py --pdf ... --slug liangzhu --count 16 \
+      --cover-from 2 --out-dir public/images/travel/liangzhu
 
   # render only some narrative indexes (tuning / retrying failures)
   python3 scripts/watercolor_photos.py --pdf ... --only 11,16
@@ -67,8 +71,14 @@ PROMPT = (
 )
 
 CROPS = {
-    11: (0.02, 0.10, 0.98, 0.86),
-    25: (0.03, 0.12, 0.97, 0.85),
+    "guizhou": {
+        11: (0.02, 0.10, 0.98, 0.86),
+        25: (0.03, 0.12, 0.97, 0.85),
+    },
+    # k=16: shot from the shuttle, crop the roof frame out of the top
+    "liangzhu": {
+        16: (0.0, 0.14, 1.0, 1.0),
+    },
 }
 
 _tls = threading.local()
@@ -117,8 +127,8 @@ def narrative_page_map(count: int) -> dict[int, int]:
     return {k: count + 1 - k for k in range(1, count + 1)}
 
 
-def apply_crop(img: Image.Image, k: int) -> Image.Image:
-    crop = CROPS.get(k)
+def apply_crop(img: Image.Image, k: int, slug: str = "guizhou") -> Image.Image:
+    crop = CROPS.get(slug, {}).get(k)
     if not crop:
         return img
     w, h = img.size
@@ -251,8 +261,8 @@ def repaint(k: int, src: Image.Image, out_path: Path, quality: str, cover_3_2: b
     return f"{out_path.name}  {art.width}x{art.height}  {len(data) / 1024:.0f} KB  ({note}, size {size})"
 
 
-def worker(k: int, src: Image.Image, out_dir: Path, quality: str, cover_3_2: bool) -> str:
-    name = "cover.jpg" if cover_3_2 else f"guizhou-{k:02d}.jpg"
+def worker(k: int, src: Image.Image, out_dir: Path, quality: str, cover_3_2: bool, slug: str) -> str:
+    name = "cover.jpg" if cover_3_2 else f"{slug}-{k:02d}.jpg"
     out_path = out_dir / name
     try:
         return repaint(k, src, out_path, quality, cover_3_2)
@@ -274,11 +284,11 @@ def render(args) -> int:
 
         jobs = []
         for k in wanted:
-            src = apply_crop(extract_page_image(doc, mapping[k]), k)
-            jobs.append((k, src, out_dir / f"guizhou-{k:02d}.jpg", args.quality, False))
+            src = apply_crop(extract_page_image(doc, mapping[k]), k, args.slug)
+            jobs.append((k, src, out_dir / f"{args.slug}-{k:02d}.jpg", args.quality, False))
         cover_k = args.cover_from
         if not args.skip_cover:
-            src = apply_crop(extract_page_image(doc, mapping[cover_k]), cover_k)
+            src = apply_crop(extract_page_image(doc, mapping[cover_k]), cover_k, args.slug)
             jobs.append((cover_k, src, out_dir / "cover.jpg", args.quality, True))
 
         from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -286,7 +296,7 @@ def render(args) -> int:
         failures = []
         with ThreadPoolExecutor(max_workers=args.concurrency) as ex:
             futures = {
-                ex.submit(worker, k, src, out_path.parent, quality, c3): out_path.name
+                ex.submit(worker, k, src, out_path.parent, quality, c3, args.slug): out_path.name
                 for k, src, out_path, quality, c3 in jobs
             }
             for fut in as_completed(futures):
@@ -319,8 +329,8 @@ def make_collage(doc: fitz.Document, args) -> None:
     thumb_h = cell_h - 12
 
     for i, k in enumerate(wanted):
-        src = apply_crop(extract_page_image(doc, mapping[k]), k)
-        out = Path(args.out_dir) / f"guizhou-{k:02d}.jpg"
+        src = apply_crop(extract_page_image(doc, mapping[k]), k, args.slug)
+        out = Path(args.out_dir) / f"{args.slug}-{k:02d}.jpg"
         if not out.exists():
             continue
         art = Image.open(out).convert("RGB")
@@ -348,7 +358,7 @@ def make_collage(doc: fitz.Document, args) -> None:
 
 def verify_outputs(args) -> int:
     out_dir = Path(args.out_dir)
-    expected = {f"guizhou-{k:02d}.jpg" for k in range(1, 26)} | {"cover.jpg"}
+    expected = {f"{args.slug}-{k:02d}.jpg" for k in range(1, args.count + 1)} | {"cover.jpg"}
     missing = expected - {p.name for p in out_dir.glob("*.jpg")}
     if missing:
         print(f"MISSING: {sorted(missing)}")
@@ -371,6 +381,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--pdf", required=True)
     ap.add_argument("--out-dir", default=DEFAULT_OUT_DIR)
+    ap.add_argument("--slug", default="guizhou")
     ap.add_argument("--count", type=int, default=25)
     ap.add_argument("--only", type=lambda v: [int(x) for x in v.split(",")])
     ap.add_argument("--cover-from", type=int, default=11)
