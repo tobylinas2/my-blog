@@ -2,7 +2,9 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useTravelOrigSrc } from "./TravelOrigContext";
 
 type TravelPhotoVariant = "card" | "wide" | "full" | "side";
 
@@ -35,6 +37,14 @@ export function TravelPhoto({
   ratio = "3/2",
   className,
 }: TravelPhotoProps) {
+  const orig = useTravelOrigSrc(src);
+  const [showOrig, setShowOrig] = useState(false);
+  // 原图首次切换才挂载（默认访问不加载 41 张原图），之后保持挂载避免来回重复请求
+  const [origMounted, setOrigMounted] = useState(false);
+  const select = (next: boolean) => {
+    setShowOrig(next);
+    if (next) setOrigMounted(true);
+  };
   const framed = variant !== "full";
   // 三个嵌套层各持一种 transform：外层破格位移 / reveal 升起 / 卡片微倾
   const bleed =
@@ -80,8 +90,53 @@ export function TravelPhoto({
               alt={alt ?? caption}
               fill
               sizes={variant === "card" ? "(max-width: 768px) 90vw, 448px" : "90vw"}
-              className="object-cover"
+              className={cn(
+                "object-cover transition-opacity duration-500",
+                orig && showOrig && "opacity-0"
+              )}
             />
+            {orig && origMounted && (
+              <Image
+                src={orig}
+                alt={`原图：${alt ?? caption}`}
+                fill
+                sizes={variant === "card" ? "(max-width: 768px) 90vw, 448px" : "90vw"}
+                className={cn(
+                  "object-cover transition-opacity duration-500",
+                  !showOrig && "opacity-0"
+                )}
+              />
+            )}
+            {orig && (
+              <div
+                className="absolute right-2 top-2 z-10 flex overflow-hidden rounded-full border border-border bg-paper/90 text-[11px] shadow-sm backdrop-blur-sm"
+                role="group"
+                aria-label="切换原图与风格化"
+              >
+                <button
+                  type="button"
+                  onClick={() => select(true)}
+                  aria-pressed={showOrig}
+                  className={cn(
+                    "px-2.5 py-1 tracking-wide transition-colors",
+                    showOrig ? "bg-ink text-paper" : "text-ink-light hover:text-ink"
+                  )}
+                >
+                  原图
+                </button>
+                <button
+                  type="button"
+                  onClick={() => select(false)}
+                  aria-pressed={!showOrig}
+                  className={cn(
+                    "px-2.5 py-1 tracking-wide transition-colors",
+                    !showOrig ? "bg-ink text-paper" : "text-ink-light hover:text-ink"
+                  )}
+                >
+                  风格化
+                </button>
+              </div>
+            )}
           </div>
         </div>
         <figcaption className="mt-2.5 px-1 leading-relaxed">

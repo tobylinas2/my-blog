@@ -1,13 +1,26 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import fs from "node:fs";
+import path from "node:path";
 import { allTravels } from "contentlayer2/generated";
 import { MDXRenderer } from "@/components/MDXRenderer";
 import { TravelHero } from "@/components/TravelHero";
 import { TravelMotionConfig } from "@/components/TravelMotionConfig";
+import { TravelOrigProvider } from "@/components/TravelOrigContext";
 import { formatDate } from "@/lib/utils";
 
 interface Props {
   params: Promise<{ slug: string }>;
+}
+
+/**
+ * 构建期检测本文是否带有原图集（public/<cover 目录>/orig/，TOB-384）：
+ * 存在才为正文照片启用原图/风格化切换，返回其 public 路径。
+ */
+function travelOrigBase(cover?: string): string | undefined {
+  if (!cover) return undefined;
+  const base = path.posix.join(path.posix.dirname(cover), "orig");
+  return fs.existsSync(path.join(process.cwd(), "public", base)) ? base : undefined;
 }
 
 export async function generateStaticParams() {
@@ -70,7 +83,9 @@ export default async function TravelEntry({ params }: Props) {
             )}
           </header>
         )}
-        <MDXRenderer code={travel.body.code} />
+        <TravelOrigProvider base={travelOrigBase(travel.cover)}>
+          <MDXRenderer code={travel.body.code} />
+        </TravelOrigProvider>
       </TravelMotionConfig>
     </article>
   );

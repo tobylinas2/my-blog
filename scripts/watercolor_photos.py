@@ -31,6 +31,12 @@ Usage:
   # rebuild the "original vs watercolor" contact sheet
   python3 scripts/watercolor_photos.py --pdf ... --collage-out /tmp/compare.jpg
 
+  # export the compressed original photos behind the 原图/风格化 toggle
+  # (body photos only, same mapping/crops/limits as the painted set, no API):
+  python3 scripts/watercolor_photos.py --pdf ... --orig-out-dir \
+      public/images/travel/liangzhu/orig --slug liangzhu --count 16 \
+      --page-order "1,2,3,16,4,11,12,15,13,14,5,6,7,8,9,10"
+
   # verify output specs after a run
   python3 scripts/watercolor_photos.py --pdf ... --out-dir ... --verify
 
@@ -135,6 +141,17 @@ def narrative_page_map(count: int, order: list[int] | None = None) -> dict[int, 
     if len(order) != count or sorted(order) != list(range(1, count + 1)):
         raise SystemExit(f"--page-order must be a permutation of 1..{count}, got {order}")
     return {k: order[k - 1] for k in range(1, count + 1)}
+
+
+def plan_originals(
+    mapping: dict[int, int], wanted, slug: str
+) -> list[tuple[int, int, str]]:
+    """Orig export plan (TOB-384): (k, pdf page, filename) tuples.
+
+    Body photos only — the hero cover stays stylized-only, so the orig set
+    never contains a cover.jpg.
+    """
+    return [(k, mapping[k], f"{slug}-{k:02d}.jpg") for k in sorted(set(wanted))]
 
 
 def apply_crop(img: Image.Image, k: int, slug: str = "guizhou") -> Image.Image:
@@ -254,6 +271,12 @@ def fit_max_side(img: Image.Image, max_side: int) -> Image.Image:
     )
 
 
+def export_original(img: Image.Image, max_side: int = MAX_SIDE) -> tuple[bytes, int, int]:
+    """Original-photo export: same resize ceiling and JPEG ladder as the painted set."""
+    fitted = fit_max_side(img, max_side)
+    return encode_jpeg(fitted), fitted.width, fitted.height
+
+
 def repaint(k: int, src: Image.Image, out_path: Path, quality: str, cover_3_2: bool) -> str:
     size = api_size(src.width, src.height, cover_3_2=cover_3_2)
     with tempfile.TemporaryDirectory() as td:
@@ -322,6 +345,27 @@ def render(args) -> int:
         return 0
     finally:
         doc.close()
+
+
+def extract_originals(doc: fitz.Document, args) -> int:
+    """Write the cropped, compressed original photos for --orig-out-dir.
+
+    No API calls: originals come straight out of the scan PDF with the same
+    narrative mapping and crops the watercolor pass was painted from.
+    """
+    count = len(doc)
+    if count != args.count:
+        raise SystemExit(f"expected {args.count} pages, found {count}")
+    mapping = narrative_page_map(count, args.page_order)
+    wanted = args.only if args.only else mapping
+    out_dir = Path(args.orig_out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for k, page, name in plan_originals(mapping, wanted, args.slug):
+        src = apply_crop(extract_page_image(doc, page), k, args.slug)
+        data, w, h = export_original(src, args.max_side)
+        (out_dir / name).write_bytes(data)
+        print(f"{name}  {w}x{h}  {len(data) / 1024:.0f} KB  (page {page})", flush=True)
+    return 0
 
 
 def make_collage(doc: fitz.Document, args) -> None:
@@ -400,6 +444,7 @@ def main() -> None:
     ap.add_argument("--quality", default="high")
     ap.add_argument("--concurrency", type=int, default=CONCURRENCY)
     ap.add_argument("--max-side", type=int, default=MAX_SIDE)
+    ap.add_argument("--orig-out-dir")
     ap.add_argument("--collage-out")
     ap.add_argument("--collage-only", action="store_true")
     ap.add_argument("--verify", action="store_true")
@@ -417,6 +462,13 @@ def main() -> None:
         finally:
             doc.close()
         sys.exit(0)
+
+    if args.orig_out_dir:
+        doc = fitz.open(args.pdf)
+        try:
+            sys.exit(extract_originals(doc, args))
+        finally:
+            doc.close()
 
     code = render(args)
     if code == 0 and args.collage_out:
