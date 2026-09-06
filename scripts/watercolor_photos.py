@@ -15,9 +15,10 @@ Usage:
   python3 scripts/watercolor_photos.py --pdf /path/to/scan.pdf \
       --out-dir public/images/travel/guizhou
 
-  # a different trip: pass its slug and page count
+  # a different trip: pass its slug and page count (cover source must be a
+  # landscape-frame shot; here k=13, the meadow vista used for the cover)
   python3 scripts/watercolor_photos.py --pdf ... --slug liangzhu --count 16 \
-      --cover-from 2 --out-dir public/images/travel/liangzhu
+      --cover-from 13 --out-dir public/images/travel/liangzhu
 
   # render only some narrative indexes (tuning / retrying failures)
   python3 scripts/watercolor_photos.py --pdf ... --only 11,16
