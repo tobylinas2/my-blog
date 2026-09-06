@@ -2,9 +2,11 @@
 """Extract photos from a trip scan PDF and repaint them as a visually
 unified watercolor (水彩) image set via the gpt-image-2 edits API.
 
-The PDF stores photos in reverse chronological order: narrative index k
-(1-based) lives on page (N - k + 1). Outputs are named <slug>-<k>.jpg and
-follow the travelogue narrative.
+The PDF is assumed to store photos in reverse chronological order by
+default: narrative index k (1-based) lives on page (N - k + 1). Outputs
+are named <slug>-<k>.jpg and follow the travelogue narrative. If the
+scan order differs, pass the true chronological page sequence via
+--page-order and k follows that order instead.
 
 Requirements:
   - env SHUAI_API_KEY: image-generation API key (never committed)
@@ -15,10 +17,13 @@ Usage:
   python3 scripts/watercolor_photos.py --pdf /path/to/scan.pdf \
       --out-dir public/images/travel/guizhou
 
-  # a different trip: pass its slug and page count (cover source must be a
-  # landscape-frame shot; here k=13, the meadow vista used for the cover)
+  # a different trip: pass its slug and page count; --page-order lists the
+  # PDF pages in true chronological order when the scan is not simply
+  # reversed (cover source must be a landscape-frame shot; here k=5, the
+  # meadow vista used for the cover)
   python3 scripts/watercolor_photos.py --pdf ... --slug liangzhu --count 16 \
-      --cover-from 13 --out-dir public/images/travel/liangzhu
+      --page-order "1,2,3,16,4,11,12,15,13,14,5,6,7,8,9,10" \
+      --cover-from 5 --out-dir public/images/travel/liangzhu
 
   # render only some narrative indexes (tuning / retrying failures)
   python3 scripts/watercolor_photos.py --pdf ... --only 11,16
@@ -76,9 +81,9 @@ CROPS = {
         11: (0.02, 0.10, 0.98, 0.86),
         25: (0.03, 0.12, 0.97, 0.85),
     },
-    # k=16: shot from the shuttle, crop the roof frame out of the top
+    # k=1: shot from the shuttle, crop the roof frame out of the top
     "liangzhu": {
-        16: (0.0, 0.14, 1.0, 1.0),
+        1: (0.0, 0.14, 1.0, 1.0),
     },
 }
 
@@ -124,8 +129,12 @@ def extract_page_image(doc: fitz.Document, page_no: int) -> Image.Image:
     return Image.open(io.BytesIO(pix.tobytes("png"))).convert("RGB")
 
 
-def narrative_page_map(count: int) -> dict[int, int]:
-    return {k: count + 1 - k for k in range(1, count + 1)}
+def narrative_page_map(count: int, order: list[int] | None = None) -> dict[int, int]:
+    if order is None:
+        return {k: count + 1 - k for k in range(1, count + 1)}
+    if len(order) != count or sorted(order) != list(range(1, count + 1)):
+        raise SystemExit(f"--page-order must be a permutation of 1..{count}, got {order}")
+    return {k: order[k - 1] for k in range(1, count + 1)}
 
 
 def apply_crop(img: Image.Image, k: int, slug: str = "guizhou") -> Image.Image:
@@ -277,7 +286,7 @@ def render(args) -> int:
         count = len(doc)
         if count != args.count:
             raise SystemExit(f"expected {args.count} pages, found {count}")
-        mapping = narrative_page_map(count)
+        mapping = narrative_page_map(count, args.page_order)
         wanted = sorted(set(args.only) if args.only else set(mapping))
 
         out_dir = Path(args.out_dir)
@@ -317,7 +326,7 @@ def render(args) -> int:
 
 def make_collage(doc: fitz.Document, args) -> None:
     count = len(doc)
-    mapping = narrative_page_map(count)
+    mapping = narrative_page_map(count, args.page_order)
     wanted = sorted(set(args.only) if args.only else mapping)
 
     cols = 5
@@ -384,6 +393,7 @@ def main() -> None:
     ap.add_argument("--out-dir", default=DEFAULT_OUT_DIR)
     ap.add_argument("--slug", default="guizhou")
     ap.add_argument("--count", type=int, default=25)
+    ap.add_argument("--page-order", type=lambda v: [int(x) for x in v.split(",")])
     ap.add_argument("--only", type=lambda v: [int(x) for x in v.split(",")])
     ap.add_argument("--cover-from", type=int, default=11)
     ap.add_argument("--skip-cover", action="store_true")
