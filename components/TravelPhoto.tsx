@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useTravelOrigSrc } from "./TravelOrigContext";
+import { TravelLightbox } from "./TravelLightbox";
 
 type TravelPhotoVariant = "card" | "wide" | "full" | "side";
 
@@ -45,6 +46,8 @@ export function TravelPhoto({
     setShowOrig(next);
     if (next) setOrigMounted(true);
   };
+  // 点图全屏查看（TOB-384）：展示当前生效的变体（切原图后即原图）
+  const [zoom, setZoom] = useState(false);
   const framed = variant !== "full";
   // 三个嵌套层各持一种 transform：外层破格位移 / reveal 升起 / 卡片微倾
   const bleed =
@@ -107,6 +110,14 @@ export function TravelPhoto({
                 )}
               />
             )}
+            {/* 点图开全屏：盖住两张图、位于切换胶囊之下 */}
+            <button
+              type="button"
+              data-lightbox-open
+              aria-label={`全屏查看：${alt ?? caption}`}
+              onClick={() => setZoom(true)}
+              className="absolute inset-0 z-0 cursor-zoom-in bg-transparent"
+            />
             {orig && (
               <div
                 className="absolute right-2 top-2 z-10 flex overflow-hidden rounded-full border border-border bg-paper/90 text-[11px] shadow-sm backdrop-blur-sm"
@@ -146,6 +157,14 @@ export function TravelPhoto({
           <span className="text-sm text-ink-light">{caption}</span>
         </figcaption>
       </motion.figure>
+      {zoom && (
+        <TravelLightbox
+          src={orig && showOrig ? orig : src}
+          alt={alt ?? caption}
+          caption={caption}
+          onClose={() => setZoom(false)}
+        />
+      )}
     </div>
   );
 }
